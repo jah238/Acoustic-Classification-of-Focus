@@ -1,1 +1,14 @@
-Hello world!
+Acoustic-Classification-of-Focus v. 0.1
+
+Jonathan Howell <jonathan.howell@mail.mcgill.ca> <jonathanthelinguist@gmail.com>
+
+R scripts for classification of contrastive focus using acoustic parameters.
+
+CONTEXT:
+
+Part of a workflow that includes tools for harvesting speech from the web, eliciting speech production and perception data in the lab, extracting acoustic data, semi-automatic filtering and forced alignment. See author website for more details: http://conf.ling.cornell.edu/jah238/
+
+FUNDING:
+
+SSHRC Digging into Data Challenge Grant 869-2009-0004
+NSF Digging into Data Challenge Grant 1035151
