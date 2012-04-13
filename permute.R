@@ -11,11 +11,11 @@ library(MASS)
 
 
 ################  FUNCTION get.values.svm() #############
-#arguments should have 310 columns
+#arguments should have 311 columns
 get.values.svm <- function(name,train,test,features,kernel){
   
-  model <- svm(focus ~ ., data = train[,c(features,310)],kernel=kernel)
-  pred <- predict(model,test[,c(-1,-310)])
+  model <- svm(focus ~ ., data = train[,c(features,311)],kernel=kernel)
+  pred <- predict(model,test[,c(-1,-311)])
   table <- table(pred,test$focus)
   accuracy <- round((dim(test)[1]-(table[2]+table[3]))/dim(test)[1]*100,1)
   BER <- round(0.5*((table[3]/(table[1]+table[3]))+(table[2]/(table[2]+table[4])))*100,1)
@@ -37,7 +37,7 @@ get.values.svm <- function(name,train,test,features,kernel){
 
 get.values.lda <- function(name,train,test,features){
   
-  model <- lda(train[,features], train[,310])
+  model <- lda(train[,features], train[,311])
   pred <- predict(model, test[,features])
   table <- table(pred$class, test$focus)
   accuracy <- round((dim(test)[1]-(table[2]+table[3]))/dim(test)[1]*100,1)
@@ -73,9 +73,9 @@ permute.svm <- function(train,test,features,samples){
   for (i in 1:samples){
     
     # create a classification model (svm) using permuted classes
-    model <- svm(sample(focus) ~ ., data = train[,c(features,310)])
+    model <- svm(sample(focus) ~ ., data = train[,c(features,311)])
     # predict classes of test set using classification model
-    pred <- predict(model,test[,c(-1,-310)])
+    pred <- predict(model,test[,c(-1,-311)])
     # create a confusion table
     table <- table(pred,test$focus)
     # calculate accuracy and balanced error rate from the confusion table
@@ -115,7 +115,7 @@ permute.lda <- function(train,test,features,samples){
   for (i in 1:samples){
     
     # create a classification model (svm) using permuted classes
-    model <- lda(train[,features], sample(train[,310]))
+    model <- lda(train[,features], sample(train[,311]))
     # predict classes of test set using classification model
     pred <- predict(model,test[,features])
     # create a confusion table
@@ -402,9 +402,12 @@ classifier.results.lda <-function(name="test",train=thanIdid1c,test=thanIdid2,fe
 
 #######################  Dataset loop #######################
 
+
+## 1.  Set parameters
+
 # Specify working directory
 # Plots of the permutation-achieved empirical distribution will be written here
-setwd("/Users/Jonathan/Documents/Current/Comparatives/images_pval/LabFOFtoLabSOF_lda_5000")
+setwd("/Users/Jonathan/Documents/Current/Comparatives/images_pval/")
 
 # Set path for results dataframes
 results_path <- "/Users/Jonathan/Documents/Current/Comparatives/"
@@ -428,12 +431,16 @@ samples.name <- "5000"
 # see select.R #
 dsets <- list(all,best,all_f0,best_f0,all_nonf0,best_nonf0,all_syntag,best_syntag,all_paradig,best_paradig,expA,expB,expC)
 
-features <- unlist(dsets[i])
+
 
 names(dsets) <- c("all","best","all_f0","best_f0","all_nonf0","best_nonf0","all_syntag","best_syntag","all_paradig","best_paradig","expA","expB","expC")
 
 
 algorithms <- c("svm-rbf","svm-lda","lda")
+
+
+
+## 2. Run Loop
 
 for (j in 1:length(algorithms)){
 
@@ -441,19 +448,22 @@ all_results <- data.frame()
 for (i in 1:length(dsets)){
 
   if (algorithms[j]=="svm-rbf"){
-    d.name <- paste(train.name,test.name,names(dsets)[i],sep="_")
+    d.name <- paste(train.name,test.name,algorithms[j],names(dsets)[i],sep="_")
     kernel <- "radial"
+    features <- unlist(dsets[i])
     class_results <-classifier.results(d.name,train,test,features,samples,kernel)
   }
   
   if (algorithms[j]=="svm-lin"){
     d.name <- paste(train.name,test.name,algorithms[j],names(dsets)[i],sep="_")
     kernel <- "linear"
+    features <- unlist(dsets[i])
     class_results <-classifier.results(d.name,train,test,features,samples,kernel)
   }
   
   if (algorithms[j]=="lda"){
     d.name <- paste(train.name,test.name,algorithms[j],names(dsets)[i],sep="_")
+    features <- unlist(dsets[i])
     class_results <-classifier.results.lda(d.name,train,test,features,samples)
   }
   
