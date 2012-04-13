@@ -2,48 +2,6 @@
 
 
 
-library(mi)
-w1 <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/results_with_NAs/thanIdid1_results_withNAs.dataframe")
-w2 <- read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/processed/thanIdid2_results_withNAs.dataframe")
-
-mi.w1 <- mi(w1[,2:309])
-
-
-library(VIM)
-
-#Get counts of missings
-a <- aggr(w1)
-
-barMiss(w1[,2:309])
-histMiss(w1[,3:309])
-matrixplot(w1[,2:309],sortby="f0_ratio")
-
-w1 <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/results_with_NAs/thanIdid1_results_withNAs.dataframe")
-w2 <- read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/processed/thanIdid2_results_withNAs.dataframe")
-
-hotdeck.w1<- hotdeck(w1,2:309)
-hotdeck.w2<- hotdeck(w2,2:309)
-
-category=read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/categories_s_vs_nons.txt",header=TRUE,fill=TRUE)
-focus=category[,3]
-hotdeck.w1<- cbind(hotdeck.w1[,1:309],focus)
-category=read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/processed/categories_thanIdid2.txt",header=TRUE,fill=TRUE)
-focus=category[,2]
-hotdeck.w2<- cbind(hotdeck.w2[,1:309],focus)
-
-
-
-
-
-
-library(Amelia)
-amelia.imputed.w1 <- amelia(w1[,])
-Amelia Error Code:  34 
-The number of observations is too low to estimate the number of 
-parameters.  You can either remove some variables, reduce 
-the order of the time polynomial, or increase the empirical prior. 
-
-
 
 #Generating dataframes with different imputations for NAs
 
@@ -51,52 +9,56 @@ the order of the time polynomial, or increase the empirical prior.
 #load library for function impute()
 library(e1071)
 
-# Read in output from Praat script (--undefined-- already replaced by NA)
+# Read in output from Praat script (--undefined-- has already been replaced by NA in a text editor)
 w1 <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/results_with_NAs/results_all.txt",header=TRUE)
-w1 = w1[,-c(90:97,128:135)]
+# Remove any undesired parameters or observations
+w1 <- w1[-9,-c(90:97,128:135)]
+w1$duration_ratio <- w1$duration_V3/w1$duration_V2
 write.table(w1,"/Users/Jonathan/Documents/Current/speech/Data/wav_big/results_with_NAs/thanIdid1_results_withNAs.dataframe")
 w1 <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/results_with_NAs/thanIdid1_results_withNAs.dataframe")
 
 w2 <- read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/processed/thanIdid2_results_withNAs.txt",header=TRUE)
 w2 = w2[,-c(90:97,128:135)]
+w2$duration_ratio <- w2$duration_V3/w2$duration_V2
 write.table(w2,"/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/processed/thanIdid2_results_withNAs.dataframe")
 w2 <- read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/processed/thanIdid2_results_withNAs.dataframe")
 
 thanIdidlab <- read.table("/Users/Jonathan/Documents/Current/speech/Lab/17_thanidid/6_2_jah_truncated/04_results/results_withNAs.txt",header=TRUE)
 thanIdidlab <- thanIdidlab[,-c(90:97,128:135)]
+thanIdidlab$duration_ratio <- thanIdidlab$duration_V3/thanIdidlab$duration_V2
 categories <- read.table("/Users/Jonathan/Documents/Current/speech/Lab/17_thanidid/6_2_jah_truncated/05_results_withzeros/categories_thanIdid_lab.txt", header=T)
 categories <- categories[,2:5]
 thanIdidlab <- cbind(thanIdidlab,categories)
-fof <- thanIdidlab[thanIdidlab$occurrence== "FOF",-c(311:313)]
+fof <- thanIdidlab[thanIdidlab$occurrence== "FOF",-c(312:314)]
 
 
 
 ## Calculate mean impute  (need to exclude non numeric columns)
-w1_mean <- impute(w1[,2:309], what = "mean")
-w2_mean <- impute(w2[,2:309], what = "mean")
-fof_mean <- impute(fof[,2:309], what = "mean")
+w1_mean <- impute(w1[,2:310], what = "mean")
+w2_mean <- impute(w2[,2:310], what = "mean")
+fof_mean <- impute(fof[,2:310], what = "mean")
 
 
+w1_mean <- as.data.frame(w1_mean)
 w1_mean <- cbind(w1[,1],w1_mean)
 colnames(w1_mean)[1] <- colnames(w1)[1]
-category=read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/categories_s_vs_nons.txt",header=TRUE,fill=TRUE)
-focus=category[,3]
+category <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/categories_s_vs_nons.txt",header=TRUE,fill=TRUE)
+focus <- category[-9,3]
 w1_mean <- cbind(w1_mean,focus)
-w1_mean <- as.data.frame(w1_mean)
-
-w1_mean$focus <- ifelse(w1_mean$focus==1, "ns", "s")
+#w1_mean$focus <- ifelse(w1_mean$focus==1, "ns", "s")
 w1_mean$focus <- as.factor(w1_mean$focus)
 
 write.table(w1_mean,"/Users/Jonathan/Documents/Current/speech/Data/wav_big/thanIdid1_mean_impute.dataframe")
 w1_mean <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/thanIdid1_mean_impute.dataframe")
 
 
+w2_mean <- as.data.frame(w2_mean)
 w2_mean <- cbind(w2[,1],w2_mean)
 colnames(w2_mean)[1] <- colnames(w2)[1]
 category=read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/processed/categories_thanIdid2.txt",header=TRUE,fill=TRUE)
-focus=category[,2]
+focus<-category[,2]
 w2_mean <- cbind(w2_mean,focus)
-w2_mean$focus <- ifelse(w2_mean$focus==1, "ns", "s")
+#w2_mean$focus <- ifelse(w2_mean$focus==1, "ns", "s")
 w2_mean$focus <- as.factor(w2_mean$focus)
 
 
@@ -104,9 +66,9 @@ write.table(w2_mean,"/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/
 w2_mean <- read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/processed/thanIdid2_mean_impute.dataframe")
 
 
-fof_mean <- cbind(fof[,1],fof_mean,fof[,310])
 fof_mean <- as.data.frame(fof_mean)
-colnames(fof_mean)[c(1,310)] <- colnames(fof)[c(1,310)]
+fof_mean <- cbind(fof[,1],fof_mean,fof[,310])
+colnames(fof_mean)[c(1,311)] <- colnames(fof)[c(1,311)]
 write.table(fof_mean,"/Users/Jonathan/Documents/Current/speech/Data/wav_big/FOF_mean_impute.dataframe")
 fof_mean <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/FOF_mean_impute.dataframe",header=TRUE)
 
@@ -210,3 +172,49 @@ colnames(fof_kNN25)[c(1,310)] <- colnames(fof)[c(1,310)]
 write.table(fof_kNN25,"/Users/Jonathan/Documents/Current/speech/Data/wav_big/FOF_kNN25_impute.dataframe")
 fof_kNN5 <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/FOF_kNN25_impute.dataframe",header=T)
 
+
+
+
+library(mi)
+w1 <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/results_with_NAs/thanIdid1_results_withNAs.dataframe")
+w2 <- read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/processed/thanIdid2_results_withNAs.dataframe")
+
+mi.w1 <- mi(w1[,2:309])
+
+
+# More playing around
+
+
+library(VIM)
+
+#Get counts of missings
+a <- aggr(w1)
+
+barMiss(w1[,2:309])
+histMiss(w1[,3:309])
+matrixplot(w1[,2:309],sortby="f0_ratio")
+
+w1 <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/results_with_NAs/thanIdid1_results_withNAs.dataframe")
+w2 <- read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/processed/thanIdid2_results_withNAs.dataframe")
+
+hotdeck.w1<- hotdeck(w1,2:309)
+hotdeck.w2<- hotdeck(w2,2:309)
+
+category=read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/categories_s_vs_nons.txt",header=TRUE,fill=TRUE)
+focus=category[,3]
+hotdeck.w1<- cbind(hotdeck.w1[,1:309],focus)
+category=read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/processed/categories_thanIdid2.txt",header=TRUE,fill=TRUE)
+focus=category[,2]
+hotdeck.w2<- cbind(hotdeck.w2[,1:309],focus)
+
+
+
+
+
+
+library(Amelia)
+amelia.imputed.w1 <- amelia(w1[,])
+Amelia Error Code:  34 
+The number of observations is too low to estimate the number of 
+parameters.  You can either remove some variables, reduce 
+the order of the time polynomial, or increase the empirical prior. 

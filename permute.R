@@ -1,42 +1,8 @@
 
-# Nov 7, 2011  Jonathan Howell
-
-
-setwd("/Users/Jonathan/Documents/Current/Comparatives/")
-setwd("/Users/Jonathan/Documents/Current/Comparatives/images_pval/LabFOFtoLabSOF_lda_5000")
-
-
-# Read in training set web1 (aka thanIdid1)
-thanIdid1 <- read.table("/your/path/thanIdid1_with_zeros.dataframe",header=TRUE)
-#thanIdid1 <- read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/results_with_zeros/august2010/thanIdid1_with_zeros.dataframe",header=TRUE)
-w1_mean <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/thanIdid1_mean_impute.dataframe")
-w2_mean <- read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/processed/thanIdid2_mean_impute.dataframe")
-w1_kNN <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/thanIdid1_kNN2_impute.dataframe")
-w2_kNN <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/thanIdid2_kNN2_impute.dataframe")
-fof_kNN <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/FOF_kNN_impute.dataframe",header=T)
-fof_kNN5 <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/FOF_kNN5_impute.dataframe",header=T)
-fof_kNN25 <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/FOF_kNN25_impute.dataframe",header=T)
-fof_kNN50 <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/FOF_kNN50_impute.dataframe",header=T)
+## This script first builds a set of classifiers from a training set and tests them on a test set.  Then, through multiple iterations of permuting categories in the training set and repeating the training-testing paradigm, the script calculates an empirical distribution of accuracy and error and a p-value for the observed accuracy and error.
 
 
 
-# Remove file 102 (index 9) which is a duplicate of file 88
-thanIdid1c <- thanIdid1[-9,]
-
-# Read in test set web2 (aka thanIdid2)
-thanIdid2 <- read.table("/your/path/thanIdid2_with_zeros.dataframe",header=TRUE)
-#thanIdid2 <- read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/results_with_zeros/august2010/thanIdid2_with_zeros.dataframe",header=TRUE)
-
-
-thanIdidlab <- read.table("/Users/Jonathan/Documents/Current/speech/Lab/17_thanidid/6_2_jah_truncated/05_results_withzeros/thanIdidlab_with_zeros2.dataframe", header =T)
-FOF <- thanIdidlab[thanIdidlab$occurrence== "FOF",-c(311:313)]
-SOF <- thanIdidlab[thanIdidlab$occurrence== "SOF",-c(311:313)]
-
-decl <- thanIdidlab[thanIdidlab$occurrence== "FOF"& thanIdidlab$condition!="q",-c(311:313)]
-q <- thanIdidlab[thanIdidlab$occurrence== "FOF"& thanIdidlab$condition=="q",-c(311:313)]
-
-
-##
 ## Load packages, including e1071 which has the svm() function
 ## and MASS which has the lda() function
 library(e1071)
@@ -436,80 +402,60 @@ classifier.results.lda <-function(name="test",train=thanIdid1c,test=thanIdid2,fe
 
 #######################  Dataset loop #######################
 
+# Specify working directory
+# Plots of the permutation-achieved empirical distribution will be written here
+setwd("/Users/Jonathan/Documents/Current/Comparatives/images_pval/LabFOFtoLabSOF_lda_5000")
 
-thanIdid1c$duration_ratio <- thanIdid1c$duration_V3/thanIdid1c$duration_V2
+# Set path for results dataframes
+results_path <- "/Users/Jonathan/Documents/Current/Comparatives/"
 
-thanIdid2$duration_ratio <- thanIdid2$duration_V3/thanIdid2$duration_V2
-FOF$duration_ratio <- FOF$duration_V3/FOF$duration_V2
-SOF$duration_ratio <- SOF$duration_V3/SOF$duration_V2
-q$duration_ratio <- q$duration_V3/q$duration_V2
-decl$duration_ratio <- decl$duration_V3/decl$duration_V2
-w1_mean$duration_ratio <- w1_mean$duration_V3/w1_mean$duration_V2
-w2_mean$duration_ratio <- w2_mean$duration_V3/w2_mean$duration_V2
-fof_mean$duration_ratio <- fof_mean$duration_V3/fof_mean$duration_V2
-w1_kNN$duration_ratio <- w1_kNN$duration_V3/w1_kNN$duration_V2
-w2_kNN$duration_ratio <- w2_kNN$duration_V3/w2_kNN$duration_V2
-fof_kNN$duration_ratio <- fof_kNN$duration_V3/fof_kNN$duration_V2
-fof_kNN5$duration_ratio <- fof_kNN5$duration_V3/fof_kNN5$duration_V2
-fof_kNN25$duration_ratio <- fof_kNN25$duration_V3/fof_kNN25$duration_V2
-fof_kNN50$duration_ratio <- fof_kNN50$duration_V3/fof_kNN50$duration_V2
+# Read in training set web1 (aka thanIdid1)
+w1_mean <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/thanIdid1_mean_impute.dataframe")
+w2_mean <- read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid2/processed/thanIdid2_mean_impute.dataframe")
+decl <- thanIdidlab[thanIdidlab$occurrence== "FOF"& thanIdidlab$condition!="q",-c(311:313)]
+q <- thanIdidlab[thanIdidlab$occurrence== "FOF"& thanIdidlab$condition=="q",-c(311:313)]
 
-#VarSelRF values#
-all <- c(2:309,311)
-best <- c(2,178)
-all_f0 <- c(15:32,215:220)
-best_f0 <- c(17,20,30)
-all_nonf0 <- c(2:14,33:214,221:309,311)
-best_nonf0 <- c(2,178)
-syntag <- c(8,11,14,17,20,23,26,29,32,35,38,41,44,47,50,53,56,59,311)
-best_syntag <- c(17,20,27)
-paradig <-c(2:7,9,10,12,13,15,16,18,19,21,22,24,25,27,28,30,31,33,34,36,37,39,40,42,43,45,46,48,49,51,52,54,55,57,58,60:309)
-best_paradig <- c(2,178)
-expA <- c(2,178, 17, 5)
-expB <- c(2,178, 20, 5)
-expC <- c(2,178, 5)
+
+train <- w1_mean
+train.name <- "w1"
+test <- w2_mean
+test.name <- "w2"
+samples <- 5000
+samples.name <- "5000"
+
 
 # Boruta values #
-all <- c(2:309,311)
-best <- c(6, 17, 20, 26, 29, 30, 32, 50, 122, 126, 128, 130, 132, 134, 136, 138, 140, 176, 177, 178, 179, 180)
-all_f0 <- c(15:32,215:220)
-best_f0 <- c(7, 20, 24, 26, 27, 29, 30, 32)
-all_nonf0 <- c(2:14,33:214,221:309,311)
-best_nonf0 <- c(2, 6, 8, 50, 56, 63, 86, 122, 126, 128, 130, 132, 134, 136, 138, 140, 176, 177, 178, 179, 180)
-syntag <- c(8,11,14,17,20,23,26,29,32,35,38,41,44,47,50,53,56,59,311)
-best_syntag <- c(8, 17, 20, 23, 26, 29)
-paradig <-c(2:7,9,10,12,13,15,16,18,19,21,22,24,25,27,28,30,31,33,34,36,37,39,40,42,43,45,46,48,49,51,52,54,55,57,58,60:309)
-best_paradig <- c(73, 120, 122, 126, 128, 130, 132, 134, 136, 138, 140, 176, 177, 178, 179, 180)
-expA <- c(2,178, 17, 5)
-expB <- c(2,178, 20, 5)
-expC <- c(2,178, 5)
+# see select.R #
+dsets <- list(all,best,all_f0,best_f0,all_nonf0,best_nonf0,all_syntag,best_syntag,all_paradig,best_paradig,expA,expB,expC)
+
+features <- unlist(dsets[i])
+
+names(dsets) <- c("all","best","all_f0","best_f0","all_nonf0","best_nonf0","all_syntag","best_syntag","all_paradig","best_paradig","expA","expB","expC")
 
 
+algorithms <- c("svm-rbf","svm-lda","lda")
 
-
-
-dsets <- list(all,best,all_f0,best_f0,all_nonf0,best_nonf0,syntag,best_syntag,paradig,best_paradig,expA,expB,expC)
-
-names(dsets) <- c("all","best","all_f0","best_f0","all_nonf0","best_nonf0","syntag","best_syntag","paradig","best_paradig","expA","expB","expC")
+for (j in 1:length(algorithms)){
 
 all_results <- data.frame()
 for (i in 1:length(dsets)){
+
+  if (algorithms[j]=="svm-rbf"){
+    d.name <- paste(train.name,test.name,names(dsets)[i],sep="_")
+    kernel <- "radial"
+    class_results <-classifier.results(d.name,train,test,features,samples,kernel)
+  }
   
+  if (algorithms[j]=="svm-lin"){
+    d.name <- paste(train.name,test.name,algorithms[j],names(dsets)[i],sep="_")
+    kernel <- "linear"
+    class_results <-classifier.results(d.name,train,test,features,samples,kernel)
+  }
   
-  d.train <- thanIdid1
-  d.test <- thanIdid2
-  d.name <- paste("Web1_Web2_Mean_Boruta",names(dsets)[i],sep="")
-  d.features <- unlist(dsets[i])
-  d.samples = 5000
-  d.kernel = "linear"
-  
-  ###### SVM #####	
-  #	class_results <-classifier.results(d.name,d.train,d.test,d.features,d.samples,d.kernel)
-  
-  ###### LDA #####	
-  class_results <-classifier.results.lda(d.name,d.train,d.test,d.features,d.samples)	
-  #	print(dsets[i])
-  #	hist(permStats[,1])
+  if (algorithms[j]=="lda"){
+    d.name <- paste(train.name,test.name,algorithms[j],names(dsets)[i],sep="_")
+    class_results <-classifier.results.lda(d.name,train,test,features,samples)
+  }
   
   all_results <- rbind(all_results,class_results)
   
@@ -517,36 +463,8 @@ for (i in 1:length(dsets)){
 
 colnames(all_results) <- c("name", "kernel","permutations", "acc","acc.95","acc.99", "p.value.acc","BER","BER.01","BER.05", "p.value.BER", "mean.perm.acc", "mean.perm.BER")
 
-write.table(all_results,"/Users/Jonathan/Documents/Current/Comparatives/Web1toWeb2MeanBoruta_LDA_5000_1to13.dataframe")
+write.table(all_results,paste(results_path,train.name,"_",test.name,"_",algorithms[j],"_",samples.name,".dataframe",sep=""))
+}
 
 
 
-FOFw2_kNN.rbf <- read.table("/Users/Jonathan/Documents/Current/Comparatives/FOFkNNtoWeb2kNN_RBF_5000_1to13.dataframe",header=TRUE)
-
-
-
-
-
-
-
-
-
-### getting funny error
-# Error in quantile.default(statPerm, 0.05) : 
-#  missing values and NaN's not allowed if 'na.rm' is FALSE
-
-a <- classifier.results("Web1toWeb2_best_syntag",thanIdid1c,thanIdid2,best_syntag,1000,"linear")
-b <- classifier.results("Web1toWeb2_paradig",thanIdid1c,thanIdid2,paradig,30,"linear")
-
-
-
-w1w2.rbf <- read.table("/Users/Jonathan/Documents/Current/Comparatives/Web1toWeb2_RBF_1000_2to13.dataframe",header=T)
-
-coo <- cbind()
-
-plot(y=w1w2.rbf$acc,x=w1w2.rbf$name)
-
-sort.w1w2.rbf <- w1w2.rbf[order(w1w2.rbf$acc),]
-sort.w1w2.rbf
-
-plot(x=sort.w1w2.rbf$name,y=sort.w1w2.rbf$acc)
