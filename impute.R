@@ -28,8 +28,9 @@ thanIdidlab <- thanIdidlab[,-c(90:97,128:135)]
 thanIdidlab$duration_ratio <- thanIdidlab$duration_V3/thanIdidlab$duration_V2
 categories <- read.table("/Users/Jonathan/Documents/Current/speech/Lab/17_thanidid/6_2_jah_truncated/05_results_withzeros/categories_thanIdid_lab.txt", header=T)
 categories <- categories[,2:5]
-thanIdidlab <- cbind(thanIdidlab,categories)
-fof <- thanIdidlab[thanIdidlab$occurrence== "FOF",-c(312:314)]
+thanIdidlab <- as.data.frame(cbind(thanIdidlab,categories))
+#fof1 <- as.data.frame(subset(thanIdidlab,thanIdidlab$occurrence=="FOF"))
+fof <- as.data.frame(subset(thanIdidlab[,-c(311,313:315)],thanIdidlab$occurrence== "FOF"))
 
 
 
@@ -67,7 +68,7 @@ w2_mean <- read.table("/Users/Jonathan/Documents/Current/speech/Harvest/thanidid
 
 
 fof_mean <- as.data.frame(fof_mean)
-fof_mean <- cbind(fof[,1],fof_mean,fof[,310])
+fof_mean <- cbind(fof[,1],fof_mean,fof[,311])
 colnames(fof_mean)[c(1,311)] <- colnames(fof)[c(1,311)]
 write.table(fof_mean,"/Users/Jonathan/Documents/Current/speech/Data/wav_big/FOF_mean_impute.dataframe")
 fof_mean <- read.table("/Users/Jonathan/Documents/Current/speech/Data/wav_big/FOF_mean_impute.dataframe",header=TRUE)
